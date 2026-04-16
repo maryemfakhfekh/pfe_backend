@@ -1,6 +1,5 @@
 package com.asm.gestion_stagiaires.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,11 +28,13 @@ public abstract class Utilisateur implements UserDetails {
     private String email;
 
     @Column(nullable = false)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(name = "telephone")
     private String telephone;
+
+    @Column(nullable = false)
+    private boolean actif = true;
 
     @Override
     public String getUsername() {
@@ -50,5 +51,5 @@ public abstract class Utilisateur implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return this.actif; }
 }

@@ -20,6 +20,9 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public Utilisateur inscription(Stagiaire user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Cet email existe déjà");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -29,6 +32,9 @@ public class AuthService {
 
         if (userOpt.isPresent()) {
             Utilisateur user = userOpt.get();
+            if (!user.isEnabled()) {
+                throw new RuntimeException("Votre compte est désactivé. Contactez l'administrateur.");
+            }
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                 return user;
             }

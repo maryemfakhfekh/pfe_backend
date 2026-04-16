@@ -2,7 +2,8 @@ package com.asm.gestion_stagiaires.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import java.util.Date;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -11,12 +12,13 @@ public class SujetStageDTO {
     private Long id;
     private String titre;
     private String description;
-    private String filiereCible;
-    private String cycleCible;
+    private Long filiereId;
+    private String filiereNom;
+    private Long cycleId;
+    private String cycleNom;
     private List<String> competencesCibles;
-    private Date datePublication;
+    private LocalDate datePublication;
     private Boolean estDisponible;
-    // ✅ Infos du créateur exposées proprement
     private Long createurId;
     private String createurNom;
 }

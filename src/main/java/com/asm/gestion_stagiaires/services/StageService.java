@@ -46,6 +46,11 @@ public class StageService {
                 .orElseThrow(() -> new RuntimeException("Stage non trouvé"));
         stage.setStatusStage(StatusStage.TERMINE);
         stage.setDateFin(LocalDate.now());
+
+        Utilisateur stagiaire = stage.getUtilisateur();
+        stagiaire.setActif(false);
+        utilisateurRepository.save(stagiaire);
+
         return stageRepository.save(stage);
     }
 
@@ -57,6 +62,7 @@ public class StageService {
         stage.setEncadrant(encadrant);
         return stageRepository.save(stage);
     }
+
     public List<Utilisateur> getEncadrants() {
         return utilisateurRepository.findByType(com.asm.gestion_stagiaires.models.Encadrant.class);
     }

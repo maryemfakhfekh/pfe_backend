@@ -39,11 +39,9 @@ public class AuthController {
             response.put("prenom", user.getPrenom());
             response.put("telephone", user.getTelephone());
 
-            // Le rôle est déterminé par le type de la sous-classe
             String role = user.getAuthorities().iterator().next().getAuthority();
             response.put("role", role);
 
-            // Champs spécifiques au stagiaire
             if (user instanceof Stagiaire stagiaire) {
                 response.put("cycle", stagiaire.getCycle());
                 response.put("filiere", stagiaire.getFiliere());
@@ -51,7 +49,6 @@ public class AuthController {
                 response.put("dateNaissance", stagiaire.getDateNaissance());
             }
 
-            // Champs spécifiques à l'encadrant
             if (user instanceof Encadrant encadrant) {
                 response.put("departement", encadrant.getDepartement());
                 response.put("specialite", encadrant.getSpecialite());
@@ -59,7 +56,7 @@ public class AuthController {
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(401).body(Map.of("message", "Email ou mot de passe incorrect"));
+            return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
         }
     }
 

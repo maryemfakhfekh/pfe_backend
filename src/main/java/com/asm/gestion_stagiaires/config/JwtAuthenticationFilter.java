@@ -29,10 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         return path.startsWith("/api/auth/")
-                || path.startsWith("/api/references/")
                 || path.startsWith("/api/cv/")
                 || path.startsWith("/uploads/");
     }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -40,13 +40,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String method = request.getMethod();
-        String path   = request.getServletPath();
+        String path = request.getServletPath();
         logger.info(">>> JWT Filter — {} {}", method, path);
 
         String authHeader = request.getHeader("Authorization");
         logger.info(">>> Authorization header: {}", authHeader != null ? "présent" : "ABSENT");
 
-        String token    = null;
+        String token = null;
         String username = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

@@ -25,19 +25,122 @@ public class AdminController {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EmailService emailService;
 
-    // Voir les demandes en attente
+    // ===== CRÉATION DIRECTE =====
+
+    @PostMapping("/creer-rh")
+    public ResponseEntity<?> creerRH(@RequestBody Map<String, String> data) {
+        if (utilisateurRepository.existsByEmail(data.get("email"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Un compte avec cet email existe déjà"));
+        }
+
+        String motDePasse = UUID.randomUUID().toString().substring(0, 8);
+
+        RH rh = new RH();
+        rh.setNom(data.get("nom"));
+        rh.setPrenom(data.get("prenom"));
+        rh.setEmail(data.get("email"));
+        rh.setPassword(passwordEncoder.encode(motDePasse));
+        rh.setTelephone(data.get("telephone"));
+        utilisateurRepository.save(rh);
+
+        emailService.envoyerIdentifiants(
+                data.get("email"),
+                data.get("nom"),
+                data.get("prenom"),
+                data.get("email"),
+                motDePasse,
+                "RH"
+        );
+
+        return ResponseEntity.ok(Map.of("message", "Compte RH créé et email envoyé"));
+    }
+
+    @PostMapping("/creer-encadrant")
+    public ResponseEntity<?> creerEncadrant(@RequestBody Map<String, String> data) {
+        if (utilisateurRepository.existsByEmail(data.get("email"))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Un compte avec cet email existe déjà"));
+        }
+
+        String motDePasse = UUID.randomUUID().toString().substring(0, 8);
+
+        Encadrant encadrant = new Encadrant();
+        encadrant.setNom(data.get("nom"));
+        encadrant.setPrenom(data.get("prenom"));
+        encadrant.setEmail(data.get("email"));
+        encadrant.setPassword(passwordEncoder.encode(motDePasse));
+        encadrant.setTelephone(data.get("telephone"));
+        encadrant.setDepartement(data.get("departement"));
+        encadrant.setSpecialite(data.get("specialite"));
+        utilisateurRepository.save(encadrant);
+
+        emailService.envoyerIdentifiants(
+                data.get("email"),
+                data.get("nom"),
+                data.get("prenom"),
+                data.get("email"),
+                motDePasse,
+                "ENCADRANT"
+        );
+
+        return ResponseEntity.ok(Map.of("message", "Compte Encadrant créé et email envoyé"));
+    }
+
+    // ===== MODIFIER UN UTILISATEUR =====
+
+    @PutMapping("/utilisateurs/{id}")
+    public ResponseEntity<?> modifierUtilisateur(@PathVariable Long id, @RequestBody Map<String, String> data) {
+        return utilisateurRepository.findById(id).map(user -> {
+            if (data.containsKey("nom")) user.setNom(data.get("nom"));
+            if (data.containsKey("prenom")) user.setPrenom(data.get("prenom"));
+            if (data.containsKey("email")) user.setEmail(data.get("email"));
+            if (data.containsKey("telephone")) user.setTelephone(data.get("telephone"));
+
+            if (user instanceof Encadrant encadrant) {
+                if (data.containsKey("departement")) encadrant.setDepartement(data.get("departement"));
+                if (data.containsKey("specialite")) encadrant.setSpecialite(data.get("specialite"));
+            }
+
+            if (user instanceof Stagiaire stagiaire) {
+                if (data.containsKey("etablissement")) stagiaire.setEtablissement(data.get("etablissement"));
+            }
+
+            utilisateurRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Utilisateur modifié avec succès"));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // ===== ACTIVER / DÉSACTIVER UN COMPTE =====
+
+    @PutMapping("/utilisateurs/{id}/activer")
+    public ResponseEntity<?> activerCompte(@PathVariable Long id) {
+        return utilisateurRepository.findById(id).map(user -> {
+            user.setActif(true);
+            utilisateurRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Compte activé"));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/utilisateurs/{id}/desactiver")
+    public ResponseEntity<?> desactiverCompte(@PathVariable Long id) {
+        return utilisateurRepository.findById(id).map(user -> {
+            user.setActif(false);
+            utilisateurRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Compte désactivé"));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // ===== DEMANDES D'ACCÈS =====
+
     @GetMapping("/demandes-acces")
     public ResponseEntity<List<DemandeAcces>> getDemandesEnAttente() {
         return ResponseEntity.ok(demandeAccesRepository.findByStatut(StatutDemande.EN_ATTENTE));
     }
 
-    // Voir toutes les demandes
     @GetMapping("/demandes-acces/toutes")
     public ResponseEntity<List<DemandeAcces>> getToutesDemandes() {
         return ResponseEntity.ok(demandeAccesRepository.findAll());
     }
 
-    // Valider une demande
     @PutMapping("/demandes-acces/{id}/valider")
     public ResponseEntity<?> validerDemande(@PathVariable Long id) {
         DemandeAcces demande = demandeAccesRepository.findById(id)
@@ -51,10 +154,8 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "Un compte avec cet email existe déjà"));
         }
 
-        // Générer un mot de passe aléatoire
         String motDePasse = UUID.randomUUID().toString().substring(0, 8);
 
-        // Créer le compte selon le rôle
         if ("RH".equalsIgnoreCase(demande.getRoleSouhaite())) {
             RH rh = new RH();
             rh.setNom(demande.getNom());
@@ -75,7 +176,6 @@ public class AdminController {
             utilisateurRepository.save(encadrant);
         }
 
-        // Envoyer l'email avec les identifiants
         emailService.envoyerIdentifiants(
                 demande.getEmail(),
                 demande.getNom(),
@@ -85,14 +185,12 @@ public class AdminController {
                 demande.getRoleSouhaite()
         );
 
-        // Mettre à jour le statut de la demande
         demande.setStatut(StatutDemande.VALIDEE);
         demandeAccesRepository.save(demande);
 
         return ResponseEntity.ok(Map.of("message", "Demande validée, compte créé et email envoyé"));
     }
 
-    // Refuser une demande
     @PutMapping("/demandes-acces/{id}/refuser")
     public ResponseEntity<?> refuserDemande(@PathVariable Long id) {
         DemandeAcces demande = demandeAccesRepository.findById(id)
@@ -108,13 +206,13 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Demande refusée"));
     }
 
-    // Voir tous les utilisateurs
+    // ===== GESTION UTILISATEURS =====
+
     @GetMapping("/utilisateurs")
     public ResponseEntity<List<Utilisateur>> getAllUtilisateurs() {
         return ResponseEntity.ok(utilisateurRepository.findAll());
     }
 
-    // Supprimer un utilisateur
     @DeleteMapping("/utilisateurs/{id}")
     public ResponseEntity<?> supprimerUtilisateur(@PathVariable Long id) {
         utilisateurRepository.deleteById(id);

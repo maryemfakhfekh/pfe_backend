@@ -3,7 +3,8 @@ package com.asm.gestion_stagiaires.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Date;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -22,22 +23,23 @@ public class SujetStage {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String filiereCible;
+    @ManyToOne
+    @JoinColumn(name = "filiere_id")
+    private Filiere filiereCible;
 
-    private String cycleCible;
+    @ManyToOne
+    @JoinColumn(name = "cycle_id")
+    private Cycle cycleCible;
 
     @ElementCollection
     private List<String> competencesCibles;
 
-    @Temporal(TemporalType.DATE)
-    private Date datePublication = new Date();
+    private LocalDate datePublication = LocalDate.now();
 
     private Boolean estDisponible = true;
 
-    // --- AJOUT POUR LA ROBUSTESSE ---
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_rh")
-    @JsonIgnore  // ← Empêche la sérialisation du proxy Hibernate
+    @JsonIgnore
     private Utilisateur createur;
-    // --------------------------------
 }
