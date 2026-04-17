@@ -44,6 +44,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/demandes-acces/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        // ✅ Admin peut aussi lire les stages et candidatures
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stages/**").hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/candidatures/**").hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

@@ -40,6 +40,7 @@ public class CandidatureService {
         return candidatureRepository.findBySujetIn(mesSujets);
     }
 
+    // ✅ Toutes les candidatures — pour l'admin
     public List<Candidature> getAllCandidatures() {
         return candidatureRepository.findAll();
     }

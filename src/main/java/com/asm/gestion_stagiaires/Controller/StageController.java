@@ -24,7 +24,7 @@ public class StageController {
     private CandidatureService candidatureService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_RH')")
+    @PreAuthorize("hasAuthority('ROLE_RH') or hasAuthority('ROLE_ADMIN')")  // ✅
     public List<Stage> getAllStages() {
         return stageService.getAllStages();
     }

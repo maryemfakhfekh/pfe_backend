@@ -42,13 +42,18 @@ public class CandidatureController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_RH') or hasAuthority('ROLE_STAGIAIRE')")
+    @PreAuthorize("hasAuthority('ROLE_RH') or hasAuthority('ROLE_STAGIAIRE') or hasAuthority('ROLE_ADMIN')")  // ✅
     public List<Candidature> voirCandidatures(
             @RequestParam(required = false) Long stagiaireId,
             Principal principal) {
 
         if (stagiaireId != null) {
             return candidatureService.getCandidaturesByStagiaire(stagiaireId);
+        }
+
+        // ✅ Admin voit toutes les candidatures
+        if (principal.getName().equals("admin@asm.com")) {
+            return candidatureService.getAllCandidatures();
         }
 
         return candidatureService.getAllCandidaturesByRh(principal.getName());
