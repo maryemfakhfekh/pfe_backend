@@ -11,31 +11,40 @@ import java.util.List;
 public class Candidature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; //
+    private Long id;
 
-    private String cvPath; //
+    private String cvPath;
 
     // --- Sprint 2 : Analyse IA ---
-    private Double scoreMatchingIA; //
+    private Double scoreMatchingIA;
 
     @ElementCollection
-    private List<String> competencesExtraites; //
+    private List<String> competencesExtraites;
 
     // --- Attributs de Gestion ---
     @Enumerated(EnumType.STRING)
-    private StatusCandidature statut = StatusCandidature.EN_ATTENTE; //
+    private StatusCandidature statut = StatusCandidature.EN_ATTENTE;
 
-    private LocalDate dateDepot = LocalDate.now(); //
+    private LocalDate dateDepot = LocalDate.now();
 
     // --- Attribut pour l'Entretien ---
-    private LocalDateTime dateEntretien; //
+    private LocalDateTime dateEntretien;
+
+    // ✅ Commentaire de l'encadrant après l'entretien
+    @Column(columnDefinition = "TEXT")
+    private String commentaireEncadrant;
 
     // --- Relations ---
     @ManyToOne
     @JoinColumn(name = "stagiaire_id")
-    private Utilisateur stagiaire; //
+    private Utilisateur stagiaire;
 
     @ManyToOne
     @JoinColumn(name = "sujet_id")
     private SujetStage sujet;
+
+    // ✅ NOUVEAU : Encadrant assigné pour l'entretien
+    @ManyToOne
+    @JoinColumn(name = "encadrant_id")
+    private Utilisateur encadrant;
 }

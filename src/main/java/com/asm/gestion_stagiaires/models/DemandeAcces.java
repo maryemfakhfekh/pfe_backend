@@ -28,6 +28,10 @@ public class DemandeAcces {
 
     private String telephone;
 
+    // ✅ Mot de passe choisi par l'utilisateur lors de la demande
+    @Column(nullable = false)
+    private String password;
+
     @Column(name = "role_souhaite", nullable = false)
     private String roleSouhaite; // "RH" ou "ENCADRANT"
 

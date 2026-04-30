@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class EvaluationService {
@@ -14,10 +15,15 @@ public class EvaluationService {
     @Autowired private StageRepository stagiaireRepository;
     @Autowired private UtilisateurRepository utilisateurRepository;
 
+    // ✅ Toutes les évaluations — pour RH et Admin
+    public List<Evaluation> getAllEvaluations() {
+        return evaluationRepository.findAll();
+    }
+
     public Evaluation creerEvaluation(Long stagiaireId, Long encadrantId,
                                       Double note, String commentaire) {
         Stage stagiaire = stagiaireRepository.findById(stagiaireId)
-                .orElseThrow(() -> new RuntimeException("Stagiaire non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Stage non trouvé"));
         Utilisateur encadrant = utilisateurRepository.findById(encadrantId)
                 .orElseThrow(() -> new RuntimeException("Encadrant non trouvé"));
 

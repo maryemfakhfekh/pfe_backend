@@ -10,9 +10,16 @@ import java.util.Optional;
 
 @Repository
 public interface StageRepository extends JpaRepository<Stage, Long> {
-    Optional<Stage> findByUtilisateurId(Long utilisateurId);
-    List<Stage> findByStatusStage(StatusStage statusStage);
-    boolean existsByUtilisateurId(Long utilisateurId);
-    List<Stage> findByEncadrantId(Long encadrantId);
 
+    // ✅ Pour StageService.getStageByUtilisateurId (un seul stage par utilisateur attendu)
+    Optional<Stage> findFirstByUtilisateurId(Long utilisateurId);
+
+    // ✅ Pour CandidatureService (liste, au cas où)
+    List<Stage> findAllByUtilisateurId(Long utilisateurId);
+
+    List<Stage> findByStatusStage(StatusStage statusStage);
+
+    boolean existsByUtilisateurId(Long utilisateurId);
+
+    List<Stage> findByEncadrantId(Long encadrantId);
 }

@@ -44,10 +44,51 @@ public class SecurityConfig {
                         .requestMatchers("/api/demandes-acces/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // ✅ Stats RH — accessible au RH et Admin
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/admin/stats")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
+
+                        // ✅ Admin — reste protégé
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                        // ✅ Admin peut aussi lire les stages et candidatures
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stages/**").hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/candidatures/**").hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
+
+                        // ✅ Stages — endpoints spécifiques stagiaire (AVANT la règle générique)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stages/has-dossier")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_STAGIAIRE")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stages/mon-dossier")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_STAGIAIRE")
+
+                        // ✅ Stages — liste générale RH et Admin
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stages")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/stages/**")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_ENCADRANT")
+
+                        // ✅ Encadrants — endpoints spécifiques encadrant
+                        .requestMatchers("/api/encadrants/**").hasAuthority("ROLE_ENCADRANT")
+
+                        // ✅ Candidatures — RH, Admin, Stagiaire ET Encadrant
+                        // L'encadrant a besoin d'accès pour ses entretiens (GET /mes-entretiens,
+                        // PUT /valider-encadrant, PUT /refuser-encadrant)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/candidatures")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_STAGIAIRE", "ROLE_ENCADRANT")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/candidatures/**")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_STAGIAIRE", "ROLE_ENCADRANT")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/candidatures/**")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_ENCADRANT")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/candidatures/**")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN", "ROLE_STAGIAIRE")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/candidatures/**")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ADMIN")
+
+                        // ✅ Evaluations — RH, Encadrant, Stagiaire, Admin
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/evaluations")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ENCADRANT", "ROLE_STAGIAIRE", "ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/evaluations/**")
+                        .hasAnyAuthority("ROLE_RH", "ROLE_ENCADRANT", "ROLE_STAGIAIRE", "ROLE_ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/evaluations/**")
+                        .hasAuthority("ROLE_ENCADRANT")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

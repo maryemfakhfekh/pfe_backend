@@ -12,12 +12,10 @@ import java.util.List;
 @Service
 public class StageService {
 
-    @Autowired
-    private StageRepository stageRepository;
+    @Autowired private StageRepository stageRepository;
+    @Autowired private UtilisateurRepository utilisateurRepository;
 
-    @Autowired
-    private UtilisateurRepository utilisateurRepository;
-
+    // (ancienne méthode conservée pour compatibilité)
     public Stage creerStage(Utilisateur utilisateur, Candidature candidature) {
         Stage stage = new Stage();
         stage.setUtilisateur(utilisateur);
@@ -28,12 +26,24 @@ public class StageService {
         return stageRepository.save(stage);
     }
 
+    // ✅ NOUVEAU : crée le stage avec l'encadrant déjà assigné dans la candidature
+    public Stage creerStageDepuisCandidature(Candidature candidature) {
+        Stage stage = new Stage();
+        stage.setUtilisateur(candidature.getStagiaire());
+        stage.setCandidature(candidature);
+        stage.setSujet(candidature.getSujet());
+        stage.setEncadrant(candidature.getEncadrant()); // ✅ encadrant de l'entretien
+        stage.setDateDebut(LocalDate.now());
+        stage.setStatusStage(StatusStage.EN_COURS);
+        return stageRepository.save(stage);
+    }
+
     public List<Stage> getAllStages() {
         return stageRepository.findAll();
     }
 
     public Stage getStageByUtilisateurId(Long utilisateurId) {
-        return stageRepository.findByUtilisateurId(utilisateurId)
+        return stageRepository.findFirstByUtilisateurId(utilisateurId)
                 .orElseThrow(() -> new RuntimeException("Stage non trouvé"));
     }
 

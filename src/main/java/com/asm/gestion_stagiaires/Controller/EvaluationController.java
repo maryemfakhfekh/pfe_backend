@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,7 +21,13 @@ public class EvaluationController {
     @Autowired private EvaluationService evaluationService;
     @Autowired private CandidatureService candidatureService;
 
-    // Encadrant crée ou modifie une évaluation
+    // ✅ RH et Admin voient toutes les évaluations — SecurityConfig gère les droits
+    @GetMapping
+    public ResponseEntity<List<Evaluation>> getAllEvaluations() {
+        return ResponseEntity.ok(evaluationService.getAllEvaluations());
+    }
+
+    // ✅ Encadrant crée ou modifie une évaluation
     @PostMapping("/stagiaire/{stagiaireId}")
     @PreAuthorize("hasAuthority('ROLE_ENCADRANT')")
     public ResponseEntity<Evaluation> evaluer(
@@ -31,15 +38,14 @@ public class EvaluationController {
         Double note = Double.parseDouble(body.get("note").toString());
         String commentaire = body.get("commentaire").toString();
         return ResponseEntity.ok(
-                evaluationService.creerEvaluation(stagiaireId, encadrant.getId(),
-                        note, commentaire));
+                evaluationService.creerEvaluation(
+                        stagiaireId, encadrant.getId(), note, commentaire));
     }
 
-    // Voir l'évaluation d'un stagiaire
+    // ✅ Voir l'évaluation d'un stagiaire
     @GetMapping("/stagiaire/{stagiaireId}")
     @PreAuthorize("hasAuthority('ROLE_ENCADRANT') or hasAuthority('ROLE_RH') or hasAuthority('ROLE_STAGIAIRE')")
-    public ResponseEntity<Evaluation> getEvaluation(
-            @PathVariable Long stagiaireId) {
+    public ResponseEntity<Evaluation> getEvaluation(@PathVariable Long stagiaireId) {
         return ResponseEntity.ok(evaluationService.getEvaluationByStagiaire(stagiaireId));
     }
 }
